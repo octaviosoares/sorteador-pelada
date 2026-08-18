@@ -2056,3 +2056,33 @@ input[type="text"]:focus, input[type="number"]:focus {
 #btn-timer-play-pause:hover {
     background-color: var(--color-accent-hover) !important;
 }
+
+/* Força botão Encerrar Peladas como vermelho sólido com texto branco */
+#btn-end-day {
+    background-color: var(--color-danger) !important;
+    color: #ffffff !important;
+    padding: 0.5rem 0.85rem !important;
+    border-radius: 0.5rem !important;
+    border: none !important;
+    font-weight: 700 !important;
+    font-size: 0.8rem !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2) !important;
+    transition: background-color var(--transition-fast) !important;
+}
+#btn-end-day:hover {
+    background-color: var(--color-danger-hover) !important;
+}
+
+/* Força botão Reiniciar Tempo com borda verde e fundo transparente (outline) */
+#btn-timer-reset {
+    background-color: transparent !important;
+    border: 2px solid var(--color-accent) !important;
+    color: var(--color-accent) !important;
+    font-weight: 700 !important;
+    transition: background-color var(--transition-fast) !important;
+}
+#btn-timer-reset:hover {
+    background-color: var(--color-accent-glow) !important;
+}
