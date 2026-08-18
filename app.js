@@ -1640,8 +1640,8 @@ async function showAdMobBanner() {
         const options = {
             adId: 'ca-app-pub-3940256099942544/6300978111', // ID de teste oficial do Google para Banner
             adSize: 'BANNER',
-            position: 'TOP_CENTER', // Banner no topo para não atrapalhar o menu inferior de abas
-            margin: 0,
+            position: 'BOTTOM_CENTER', // Posicionado embaixo
+            margin: 72, // Afasta 72px do rodapé para ficar exatamente acima do menu
             isTesting: true // Mude para false para produção
         };
         try {
