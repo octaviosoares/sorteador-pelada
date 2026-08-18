@@ -2043,3 +2043,16 @@ input[type="text"]:focus, input[type="number"]:focus {
 .spin-tails-anim {
     animation: spin-tails 1.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
+
+/* Força contraste no botão do cronômetro (Fundo verde com texto em branco) */
+#btn-timer-play-pause {
+    background-color: var(--color-accent) !important;
+    color: #ffffff !important;
+}
+#btn-timer-play-pause svg {
+    fill: #ffffff !important;
+    color: #ffffff !important;
+}
+#btn-timer-play-pause:hover {
+    background-color: var(--color-accent-hover) !important;
+}
