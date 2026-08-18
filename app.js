@@ -24,6 +24,7 @@ const MOCK_PLAYERS = [
 // ESTADO GLOBAL DO APLICATIVO
 let state = {
     players: [],
+    matchHistory: [],
     drawResults: {
         teams: [],
         bench: []
@@ -71,6 +72,15 @@ function loadData() {
     if (savedDraw) {
         state.drawResults = JSON.parse(savedDraw);
     }
+
+    const savedHistory = localStorage.getItem("sorteiafut_match_history");
+    if (savedHistory) {
+        state.matchHistory = JSON.parse(savedHistory);
+    }
+}
+
+function saveHistory() {
+    localStorage.setItem("sorteiafut_match_history", JSON.stringify(state.matchHistory));
 }
 
 function savePlayers() {
@@ -181,9 +191,13 @@ function initApp() {
     renderPlayersList();
     renderArtilhariaList();
     renderLastDraw();
+    renderHistory();
 
     // Inicializa AdMob Nativo
     initAdMob();
+
+    // Eventos de encerramento do dia
+    document.getElementById("btn-end-day").addEventListener("click", confirmEndDay);
 }
 
 // NAVEGAÇÃO DE ABAS
@@ -864,6 +878,19 @@ function endMatchProcess(saveData = false) {
         // Os gols já são salvos em tempo real ao selecionar o jogador, mas vamos re-salvar por segurança
         savePlayers();
         renderArtilhariaList();
+
+        // Adiciona a partida ao histórico do dia
+        const matchData = {
+            id: state.matchHistory.length + 1,
+            teamA: document.getElementById("team-a-title").textContent,
+            teamB: document.getElementById("team-b-title").textContent,
+            scoreA: state.match.state.scoreA,
+            scoreB: state.match.state.scoreB,
+            goalsLog: [...state.match.state.goalsLog]
+        };
+        state.matchHistory.push(matchData);
+        saveHistory();
+        renderHistory();
     }
 
     // Reset UI
@@ -1668,5 +1695,99 @@ async function showAdMobInterstitial() {
         } catch (e) {
             console.error("Erro ao exibir intersticial do AdMob:", e);
         }
+    }
+}
+
+// ==========================================
+// HISTÓRICO DE PARTIDAS DO DIA E ENCERRAMENTO
+// ==========================================
+
+function renderHistory() {
+    const listElement = document.getElementById("match-history-list");
+    if (!listElement) return;
+
+    listElement.innerHTML = "";
+
+    if (!state.matchHistory || state.matchHistory.length === 0) {
+        listElement.innerHTML = '<p class="empty-events text-muted" style="text-align: center; padding: 1.5rem 0;">Nenhuma partida concluída hoje.</p>';
+        return;
+    }
+
+    // Renderiza cada partida de hoje em ordem reversa (mais recente no topo)
+    [...state.matchHistory].reverse().forEach(match => {
+        const item = document.createElement("div");
+        item.className = "history-item";
+        item.style.background = "rgba(0, 0, 0, 0.02)";
+        item.style.border = "1px solid rgba(0, 0, 0, 0.04)";
+        item.style.borderRadius = "0.6rem";
+        item.style.padding = "0.75rem 0.85rem";
+        item.style.display = "flex";
+        item.style.flexDirection = "column";
+        item.style.gap = "0.25rem";
+        item.style.fontSize = "0.85rem";
+        item.style.color = "var(--text-main)";
+
+        // Determina vencedor ou empate
+        let resultLabel = "🤝 Empate";
+        if (match.scoreA > match.scoreB) {
+            resultLabel = `🏆 Vit. ${match.teamA}`;
+        } else if (match.scoreB > match.scoreA) {
+            resultLabel = `🏆 Vit. ${match.teamB}`;
+        }
+
+        // Formata os gols
+        let goalsText = "Sem gols registrados";
+        if (match.goalsLog && match.goalsLog.length > 0) {
+            const goalsMap = {};
+            match.goalsLog.forEach(g => {
+                goalsMap[g.playerName] = (goalsMap[g.playerName] || 0) + 1;
+            });
+            goalsText = "⚽ Gols: " + Object.entries(goalsMap).map(([name, count]) => `${name} (${count})`).join(", ");
+        }
+
+        item.innerHTML = `
+            <div style="display: flex; justify-content: space-between; font-weight: 700; align-items: center;">
+                <span>Jogo ${match.id}</span>
+                <span style="font-size: 0.75rem; background: rgba(0, 0, 0, 0.06); padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: 600;">${resultLabel}</span>
+            </div>
+            <div style="font-size: 0.95rem; font-weight: 600; text-align: center; margin: 0.25rem 0; color: var(--color-accent);">
+                ${match.teamA} <span style="font-size: 1.1rem; color: var(--text-main);">${match.scoreA} x ${match.scoreB}</span> ${match.teamB}
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); font-style: italic;">
+                ${goalsText}
+            </div>
+        `;
+        listElement.appendChild(item);
+    });
+}
+
+function confirmEndDay() {
+    if (!state.matchHistory || state.matchHistory.length === 0) {
+        alert("Nenhuma partida foi jogada ainda hoje.");
+        return;
+    }
+
+    if (confirm("Deseja realmente encerrar a Pelada de Hoje?\n\nEsta ação irá:\n1. Apagar o histórico de partidas de hoje.\n2. Zerar a contagem de gols de todos os jogadores (Artilharia).\n\nIdeal para começar um novo dia de jogos limpo!")) {
+        let totalGames = state.matchHistory.length;
+        let totalGoals = 0;
+        state.matchHistory.forEach(m => totalGoals += (m.scoreA + m.scoreB));
+
+        let topScorer = { name: "Ninguém", goals: 0 };
+        state.players.forEach(p => {
+            if (p.goals > topScorer.goals) {
+                topScorer = { name: p.name, goals: p.goals };
+            }
+        });
+
+        state.matchHistory = [];
+        state.players.forEach(p => p.goals = 0);
+
+        savePlayers();
+        saveHistory();
+        
+        renderHistory();
+        renderArtilhariaList();
+
+        alert(`🏁 Pelada do Dia Encerrada com Sucesso!\n\nResumo de Hoje:\n⚽ Partidas Jogadas: ${totalGames}\n🔥 Total de Gols: ${totalGoals}\n👑 Artilheiro do Dia: ${topScorer.name} (${topScorer.goals} gols)`);
     }
 }
