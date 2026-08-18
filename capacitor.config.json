@@ -1,0 +1,6 @@
+{
+  "appId": "com.sorteiafut.app",
+  "appName": "SorteiaFut",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}

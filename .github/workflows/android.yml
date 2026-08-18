@@ -1,0 +1,62 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# DIGITE SEU ID DE APLICATIVO REAL DO ADMOB NA LINHA ABAIXO (Substituindo o ID de teste do Google):
+env:
+  ADMOB_APP_ID: "ca-app-pub-3940256099942544~3347511713" # ID de Teste Padrão do Google
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: |
+          npm install
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Initialize Capacitor Android
+        run: |
+          npx cap add android
+          npx cap sync
+
+      - name: Inject AdMob App ID in AndroidManifest
+        run: |
+          MANIFEST_PATH="android/app/src/main/AndroidManifest.xml"
+          # Injeta a tag de metadata do AdMob com o ID especificado nas variáveis de ambiente
+          sed -i "s|</application>|<meta-data android:name=\"com.google.android.gms.ads.APPLICATION_ID\" android:value=\"${{ env.ADMOB_APP_ID }}\"/>\n    </application>|g" $MANIFEST_PATH
+          echo "AdMob App ID injetado com sucesso no AndroidManifest.xml!"
+
+      - name: Build Android App (Debug APK)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SorteiaFut-App-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk

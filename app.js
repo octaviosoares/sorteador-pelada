@@ -181,6 +181,9 @@ function initApp() {
     renderPlayersList();
     renderArtilhariaList();
     renderLastDraw();
+
+    // Inicializa AdMob Nativo
+    initAdMob();
 }
 
 // NAVEGAÇÃO DE ABAS
@@ -433,6 +436,9 @@ function drawTeams() {
         alert("Adicione e confirme a presença de pelo menos 4 jogadores para realizar um sorteio.");
         return;
     }
+
+    // Exibe anúncio intersticial de tela cheia se rodando no app nativo
+    showAdMobInterstitial();
 
     // Ler configurações unificadas
     const numTeams = parseInt(document.getElementById("input-num-teams").value, 10) || 2;
@@ -1601,5 +1607,66 @@ function playPickSound() {
         }, 350);
     } catch (e) {
         console.log("Audio pick not supported: ", e);
+    }
+}
+
+// ==========================================
+// ADMOB INTEGRATION (CAPACITOR NATIVE PLUGINS)
+// ==========================================
+
+async function initAdMob() {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+        const { AdMob } = window.Capacitor.Plugins;
+        try {
+            console.log("Inicializando AdMob Nativo...");
+            await AdMob.initialize({
+                initializeForTesting: true, // true usa os IDs de teste do Google. Mude para false para produção.
+            });
+            console.log("AdMob inicializado!");
+            
+            // Exibir o banner de propaganda
+            showAdMobBanner();
+        } catch (e) {
+            console.error("Erro ao inicializar o AdMob:", e);
+        }
+    } else {
+        console.log("AdMob ignorado: Não está rodando no ambiente nativo do Capacitor.");
+    }
+}
+
+async function showAdMobBanner() {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+        const { AdMob } = window.Capacitor.Plugins;
+        const options = {
+            adId: 'ca-app-pub-3940256099942544/6300978111', // ID de teste oficial do Google para Banner
+            adSize: 'BANNER',
+            position: 'TOP_CENTER', // Banner no topo para não atrapalhar o menu inferior de abas
+            margin: 0,
+            isTesting: true // Mude para false para produção
+        };
+        try {
+            await AdMob.showBanner(options);
+            console.log("Banner AdMob carregado e exibido!");
+        } catch (e) {
+            console.error("Erro ao exibir banner do AdMob:", e);
+        }
+    }
+}
+
+async function showAdMobInterstitial() {
+    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+        const { AdMob } = window.Capacitor.Plugins;
+        const options = {
+            adId: 'ca-app-pub-3940256099942544/1033173712', // ID de teste oficial do Google para Interstitial
+            isTesting: true // Mude para false para produção
+        };
+        try {
+            console.log("Carregando anúncio intersticial...");
+            await AdMob.prepareInterstitial(options);
+            await AdMob.showInterstitial();
+            console.log("Intersticial AdMob exibido!");
+        } catch (e) {
+            console.error("Erro ao exibir intersticial do AdMob:", e);
+        }
     }
 }

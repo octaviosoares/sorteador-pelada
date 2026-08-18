@@ -1,0 +1,17 @@
+{
+  "name": "sorteador-pelada",
+  "version": "2.2.0",
+  "description": "Sorteador de Peladas & Artilharia Premium com AdMob Nativo",
+  "main": "index.html",
+  "scripts": {
+    "sync": "npx cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor-community/admob": "^6.0.0",
+    "@capacitor/cli": "^6.0.0"
+  }
+}
