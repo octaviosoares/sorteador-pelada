@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SorteiaFut - Sorteador de Peladas & Artilharia</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts: Montserrat para cabeçalhos e números esportivos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <!-- Ícone do Aplicativo / Favicon -->
+    <link rel="icon" type="image/jpeg" href="icon.jpg">
+</head>
+<body>
+    <div class="app-container">
+        <!-- CABEÇALHO DO APLICATIVO -->
+        <header class="app-header">
+            <div class="logo-area">
+                <img src="logo.jpg" alt="SorteiaFut Logo" class="header-logo-img" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                <h1>Sorteia<span>Fut</span> <small style="font-size: 0.6rem; opacity: 0.5; vertical-align: super;">v2.2</small></h1>
+            </div>
+            <span class="game-status-badge" id="header-match-status" style="display: none;">Em Jogo</span>
+        </header>
+
+        <!-- CONTEÚDO PRINCIPAL (ABAS DE NAVEGAÇÃO) -->
+        <main class="app-content">
+            
+            <!-- ABA 1: JOGADORES -->
+            <section id="tab-jogadores" class="tab-panel active">
+                <div class="section-card card-pitch-bg">
+                    <h2>Novo Jogador</h2>
+                    <form id="form-add-jogador" class="form-row">
+                        <div class="input-group">
+                            <input type="text" id="jogador-nome" placeholder="Nome do amigo..." required maxlength="20">
+                        </div>
+                        <div class="toggle-group">
+                            <label for="jogador-goleiro" class="toggle-label">
+                                <input type="checkbox" id="jogador-goleiro">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Goleiro</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn-primary-icon" title="Adicionar">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="section-card">
+                    <h2>Configuração da Pelada ⚙️</h2>
+                    
+                    <div class="config-inputs-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%;">
+                        <!-- Input 1: Qtd de Times -->
+                        <div class="config-input-group" id="group-config-teams">
+                            <label for="input-num-teams">Número de times</label>
+                            <div class="number-stepper">
+                                <button class="step-btn minus">-</button>
+                                <input type="number" id="input-num-teams" value="2" min="2" max="10">
+                                <button class="step-btn plus">+</button>
+                            </div>
+                        </div>
+
+                        <!-- Input 2: Qtd de Jogadores por Time -->
+                        <div class="config-input-group" id="group-config-players">
+                            <label for="input-num-players">Jogadores por time</label>
+                            <div class="number-stepper">
+                                <button class="step-btn minus">-</button>
+                                <input type="number" id="input-num-players" value="5" min="3" max="11">
+                                <button class="step-btn plus">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-draw-teams" class="btn-primary full-width mt-3">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" class="icon-spin-hover">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        Sortear Times ⚽
+                    </button>
+                </div>
+
+                <div class="section-card flex-grow">
+                    <div class="card-header">
+                        <h2>Elenco (<span id="total-jogadores-count">0</span>)</h2>
+                        <div class="header-actions">
+                            <button id="btn-select-all" class="btn-text-action">Confirmar Todos</button>
+                            <span class="separator">|</span>
+                            <button id="btn-clear-all" class="btn-text-action danger">Limpar Tudo</button>
+                        </div>
+                    </div>
+
+                    <!-- Busca de jogadores -->
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-jogadores" placeholder="Buscar no elenco...">
+                    </div>
+
+                    <!-- Estatísticas rápidas de presença -->
+                    <div class="presence-bar">
+                        <span>Confirmados: <strong id="presence-count" class="text-accent">0</strong></span>
+                        <span id="pos-breakdown" class="pos-breakdown">0 Goleiros | 0 Linha</span>
+                    </div>
+
+                    <!-- Lista de Jogadores -->
+                    <div class="list-container" id="jogadores-list">
+                        <!-- Gerado dinamicamente -->
+                        <div class="empty-state">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <p>Nenhum jogador cadastrado ainda.<br>Adicione seus amigos acima!</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA 2: SORTEADOR -->
+            <section id="tab-sorteador" class="tab-panel">
+                <!-- Contêiner da Animação do Sorteio (Estilo Champions League) -->
+                <div id="draw-animation-container" class="draw-anim-overlay" style="display: none;">
+                    <div class="draw-anim-card">
+                        <div class="bowl-wrapper" id="bowl-balls-wrapper">
+                            <!-- Urna de Vidro -->
+                            <svg class="soccer-bowl" viewBox="0 0 200 150">
+                                <ellipse cx="100" cy="40" rx="60" ry="12" fill="none" />
+                                <path d="M40 40 C40 120, 160 120, 160 40" fill="rgba(0,0,0,0.02)" />
+                                <path d="M80 120 L120 120 L130 135 L70 135 Z" fill="rgba(0,0,0,0.05)" />
+                            </svg>
+
+                            <!-- Mão Humana Realista (Emoji do Sistema) -->
+                            <div class="drawing-hand" id="draw-anim-hand">🫳</div>
+
+                            <!-- Bolinhas dentro do pote -->
+                            <div class="bowl-balls">
+                                <div class="anim-ball ball1"></div>
+                                <div class="anim-ball ball2"></div>
+                                <div class="anim-ball ball3"></div>
+                                <div class="anim-ball ball4"></div>
+                                <div class="anim-ball ball5"></div>
+                                <div class="anim-ball ball6"></div>
+                                <div class="anim-ball ball7"></div>
+                                <div class="anim-ball ball8"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bolinha sorteada (Zoom 3D) -->
+                        <div class="picked-ball-wrapper" id="draw-anim-picked-ball" style="display: none;">
+                            <div class="picked-ball" id="draw-anim-ball-zoom">
+                                <div class="ball-inner">⚽</div>
+                            </div>
+                        </div>
+
+                        <h2 class="anim-status-text" id="draw-anim-text">Misturando as bolinhas...</h2>
+                        <button id="btn-skip-draw-anim" class="btn-secondary-action">Pular Animação ⏩</button>
+                    </div>
+                </div>
+
+                <!-- Painel de Resultados do Sorteio -->
+                <div class="results-area flex-grow" id="sorteio-results-container" style="display: none;">
+                    <div class="card-header">
+                        <h2>Times Sorteados</h2>
+                        <div class="header-actions">
+                            <button id="btn-copy-wa" class="btn-secondary-action">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                Copiar WhatsApp
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Grid de pranchetas táticas dos times -->
+                    <div class="teams-grid" id="teams-output">
+                        <!-- Gerado dinamicamente -->
+                    </div>
+
+                    <!-- Fila de Espera/Reservas se aplicável -->
+                    <div class="bench-card" id="bench-output" style="display: none;">
+                        <h3>📋 Fila de Espera (Reservas)</h3>
+                        <ol id="bench-list">
+                            <!-- Gerado dinamicamente -->
+                        </ol>
+                    </div>
+
+                    <!-- Atalho para colocar times no placar de jogo -->
+                    <div class="action-footer" id="send-to-match-container">
+                        <button id="btn-send-to-match" class="btn-accent full-width">
+                            Enviar Time 1 & 2 para o Placar ⏱️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="empty-state flex-grow" id="sorteio-empty-state">
+                    <svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="currentColor" stroke-width="1.2" style="transform: rotate(45deg);">
+                        <polyline points="23 4 23 10 17 10"></polyline>
+                        <polyline points="1 20 1 14 7 14"></polyline>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                    <p>Confirme a presença de jogadores na aba anterior e clique em "Sortear Times".</p>
+                    <small id="sorteio-warn-count" class="text-warning"></small>
+                </div>
+            </section>
+
+            <!-- ABA 3: ARTILHARIA -->
+            <section id="tab-artilharia" class="tab-panel">
+                <div class="section-card flex-grow">
+                    <div class="card-header">
+                        <h2>Ranking de Artilharia 🏆</h2>
+                        <button id="btn-reset-goals" class="btn-text-action danger">Zerar Gols</button>
+                    </div>
+
+                    <!-- Busca rápida de artilheiro -->
+                    <div class="search-box">
+                        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-artilharia" placeholder="Buscar artilheiro...">
+                    </div>
+
+                    <div class="list-container" id="artilharia-list">
+                        <!-- Gerado dinamicamente -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA 4: PLACAR & CRONÔMETRO -->
+            <section id="tab-partida" class="tab-panel">
+                <!-- Painel de Configuração antes de iniciar a Partida -->
+                <div class="section-card" id="match-setup-panel">
+                    <h2>Regras da Partida ⚙️</h2>
+                    
+                    <div class="form-group-vertical">
+                        <!-- Limite de Tempo -->
+                        <div class="checkbox-setting-row">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="match-use-time" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Limite de Tempo</span>
+                            </label>
+                            <div class="inline-input-stepper" id="stepper-time-container">
+                                <input type="number" id="match-time-limit" value="10" min="1" max="60"> 
+                                <span class="input-unit">min</span>
+                            </div>
+                        </div>
+
+                        <!-- Limite de Gols -->
+                        <div class="checkbox-setting-row">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="match-use-goals" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Limite de Gols (Quem fizer ganha)</span>
+                            </label>
+                            <div class="inline-input-stepper" id="stepper-goals-container">
+                                <input type="number" id="match-goals-limit" value="2" min="1" max="10"> 
+                                <span class="input-unit">gols</span>
+                            </div>
+                        </div>
+
+                        <!-- Aposta / Valendo Algo -->
+                        <div class="betting-setting">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="match-use-bet">
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-text">Valendo Alguma Coisa?</span>
+                            </label>
+                            <div class="bet-input-wrapper hidden" id="bet-input-container">
+                                <input type="text" id="match-bet-value" placeholder="Ex: Uma Coca-Cola 2L, engradado de ceva...">
+                                <div class="suggestion-chips">
+                                    <button type="button" class="chip" data-val="Coca-Cola 2L">🥤 Coca-Cola</button>
+                                    <button type="button" class="chip" data-val="Cerveja">🍺 Cerveja</button>
+                                    <button type="button" class="chip" data-val="Pagar o Aluguel da Quadra">🏟️ Quadra</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-start-match" class="btn-primary full-width mt-3">
+                        Iniciar Partida 🚀
+                    </button>
+                </div>
+
+                <!-- Painel da Partida Ativa (Oculto por padrão) -->
+                <div class="section-card active-match-card flex-grow" id="match-active-panel" style="display: none;">
+                    <div class="active-match-header">
+                        <h2>Partida em Andamento</h2>
+                        <button id="btn-cancel-match" class="btn-text-action danger">Cancelar Partida</button>
+                    </div>
+
+                    <!-- Exibição do Prêmio se houver -->
+                    <div class="match-bet-banner" id="match-active-bet-banner" style="display: none;">
+                        <span>🏆 Valendo: <strong id="match-active-bet-text">--</strong></span>
+                    </div>
+
+                    <!-- Placar Gigante -->
+                    <div class="scoreboard-row">
+                        <!-- TIME A -->
+                        <div class="scoreboard-team">
+                            <h3 id="team-a-title">Time A</h3>
+                            <div class="score-display" id="score-a">0</div>
+                            <div class="score-buttons">
+                                <button class="btn-score-minus" id="btn-score-a-minus" disabled>-</button>
+                                <button class="btn-score-plus" id="btn-score-a-plus">+</button>
+                            </div>
+                        </div>
+
+                        <div class="score-vs">VS</div>
+
+                        <!-- TIME B -->
+                        <div class="scoreboard-team">
+                            <h3 id="team-b-title">Time B</h3>
+                            <div class="score-display" id="score-b">0</div>
+                            <div class="score-buttons">
+                                <button class="btn-score-minus" id="btn-score-b-minus" disabled>-</button>
+                                <button class="btn-score-plus" id="btn-score-b-plus">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CRONÔMETRO GIGANTE -->
+                    <div class="timer-section">
+                        <div class="timer-display" id="timer-text">10:00</div>
+                        <div class="timer-controls">
+                            <button id="btn-timer-play-pause" class="btn-secondary">
+                                <svg id="icon-play" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <svg id="icon-pause" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="display: none;">
+                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                </svg>
+                                Iniciar
+                            </button>
+                            <button id="btn-timer-reset" class="btn-outline">Reiniciar Tempo</button>
+                        </div>
+                    </div>
+
+                    <!-- Eventos de Gol (Quem fez o gol) -->
+                    <div class="match-events-log">
+                        <h3>Gols Marcados</h3>
+                        <div class="events-list" id="match-goals-log-list">
+                            <p class="empty-events text-muted">Nenhum gol registrado.</p>
+                        </div>
+                    </div>
+
+                    <!-- Botão Finalizar Partida -->
+                    <button id="btn-end-match" class="btn-accent full-width mt-3">
+                        Encerrar e Salvar Gols 🏆
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- BARRA DE NAVEGAÇÃO INFERIOR FIXA (MOBILE-FIRST) -->
+        <nav class="app-navbar">
+            <button class="nav-btn active" data-tab="tab-jogadores">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Elenco</span>
+            </button>
+            <button class="nav-btn" data-tab="tab-sorteador">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"></polyline>
+                    <polyline points="1 20 1 14 7 14"></polyline>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                <span>Sortear</span>
+            </button>
+            <button class="nav-btn" data-tab="tab-artilharia">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                    <path d="M4 22h16"></path>
+                    <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
+                    <path d="M12 2a5 5 0 0 1 5 5v5a5 5 0 0 1-5 5 5 5 0 0 1-5-5V7a5 5 0 0 1 5-5z"></path>
+                </svg>
+                <span>Artilharia</span>
+            </button>
+            <button class="nav-btn" data-tab="tab-partida">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Placar</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- MODAL DE SELEÇÃO DO JOGADOR QUE FEZ O GOL -->
+    <div class="modal-overlay" id="goal-modal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Quem fez o gol? ⚽</h3>
+                <button class="btn-close-modal" id="btn-close-goal-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="goal-modal-players-list">
+                <!-- Gerado dinamicamente com botões dos jogadores do time -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-goal-anonymous">Gol Contra ou Anônimo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DO CAMPO TÁTICO INTERATIVO (PRANCHETA JOGO DE BOTÃO) -->
+    <div class="modal-overlay" id="pitch-modal" style="display: none;">
+        <div class="modal-card pitch-modal-card">
+            <div class="modal-header">
+                <h3 id="pitch-modal-title">Campo Tático - SorteiaFut</h3>
+                <button class="btn-close-modal" id="btn-close-pitch-modal">&times;</button>
+            </div>
+            <div class="modal-body pitch-modal-body" id="soccer-pitch-board">
+                <!-- Linhas e Marcações do Campo -->
+                <div class="pitch-line outer-border"></div>
+                <div class="pitch-line center-line"></div>
+                <div class="pitch-line center-circle"></div>
+                <div class="pitch-line penalty-area-top"></div>
+                <div class="pitch-line goal-area-top"></div>
+                <div class="pitch-line penalty-area-bottom"></div>
+                <div class="pitch-line goal-area-bottom"></div>
+                <div class="pitch-line penalty-spot-top"></div>
+                <div class="pitch-line penalty-spot-bottom"></div>
+                
+                <!-- Gols Físicos -->
+                <div class="pitch-goal goal-top"></div>
+                <div class="pitch-goal goal-bottom"></div>
+            </div>
+            <div class="modal-footer pitch-modal-footer">
+                <span class="footer-tip">Arraste os botões para definir a tática! 🎮</span>
+                <button class="btn-outline" id="btn-reset-pitch">Reiniciar Posições</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Script principal contendo a lógica do SorteiaFut -->
+    <script src="app.js?v=2.2"></script>
+</body>
+</html>
