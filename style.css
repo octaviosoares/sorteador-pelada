@@ -1558,9 +1558,7 @@ input[type="text"]:focus, input[type="number"]:focus {
     background-color: #2b7a3a; /* Verde Gramado vibrante */
     /* Listras alternadas verticais de gramado de estádio */
     background-image: 
-        repeating-linear-gradient(90deg, rgba(255,255,255,0) 0px, rgba(255,255,255,0) 30px, rgba(0,0,0,0.06) 30px, rgba(0,0,0,0.06) 60px),
-        /* Marcação do círculo central do campo de futebol ao lado direito em background */
-        radial-gradient(circle at 90% 50%, transparent 45px, rgba(255,255,255,0.12) 45px, rgba(255,255,255,0.12) 47px, transparent 47px);
+        repeating-linear-gradient(90deg, rgba(255,255,255,0) 0px, rgba(255,255,255,0) 30px, rgba(0,0,0,0.06) 30px, rgba(0,0,0,0.06) 60px);
     border: 2px solid rgba(255, 255, 255, 0.25);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15), inset 0 0 25px rgba(0,0,0,0.15);
     color: #ffffff;
