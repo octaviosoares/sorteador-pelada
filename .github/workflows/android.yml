@@ -37,6 +37,11 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Prepare Web Assets for Capacitor
+        run: |
+          mkdir -p www
+          cp index.html style.css app.js icon.jpg logo.jpg icon192.png icon512.png manifest.json sw.js www/
+
       - name: Initialize Capacitor Android
         run: |
           npx cap add android
