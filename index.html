@@ -15,14 +15,100 @@
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
+    <!-- GAVETA DO MENU HAMBÚRGUER (DRAWER) -->
+    <div id="app-drawer" class="drawer-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0); z-index: 1000; transition: background-color 0.3s ease;">
+        <div class="drawer-content" style="position: absolute; top: 0; left: -280px; width: 280px; height: 100%; background: #ffffff; box-shadow: 5px 0 15px rgba(0,0,0,0.25); display: flex; flex-direction: column; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: var(--text-main);">
+            <!-- Header do Drawer -->
+            <div style="padding: 1.5rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; background: var(--bg-card-header);">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <img src="logo.jpg" alt="Logo" style="width: 26px; height: 26px; border-radius: 50%;">
+                    <span style="font-weight: 800; font-size: 1.1rem; color: var(--color-accent);">SorteiaFut</span>
+                </div>
+                <button id="btn-close-drawer" class="btn-icon-action" style="width: 32px; height: 32px; color: var(--text-muted);">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Conteúdo do Drawer -->
+            <div style="flex: 1; padding: 1.25rem; display: flex; flex-direction: column; gap: 1.5rem; overflow-y: auto;">
+                <!-- Seção PRO -->
+                <div id="drawer-pro-banner" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 2px solid #fbbf24; border-radius: 0.75rem; padding: 1rem; color: #ffffff; position: relative; overflow: hidden; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);">
+                    <span style="position: absolute; top: -5px; right: -15px; background: #fbbf24; color: #0b0f19; font-size: 0.55rem; font-weight: 800; padding: 0.25rem 1rem; transform: rotate(45deg);">PRO</span>
+                    <h3 style="font-size: 0.95rem; font-weight: 800; color: #fbbf24; display: flex; align-items: center; gap: 0.25rem;">
+                        SorteiaFut PRO 🌟
+                    </h3>
+                    <p style="font-size: 0.75rem; color: #cbd5e1; margin-top: 0.35rem; line-height: 1.3;">Aproveite o app sem anúncios de banner e tela cheia permanentemente!</p>
+                    <div style="margin-top: 0.75rem; display: flex; align-items: baseline; gap: 0.25rem;">
+                        <span style="font-size: 0.65rem; text-decoration: line-through; color: #94a3b8;">R$ 29,90</span>
+                        <span style="font-size: 1.05rem; font-weight: 800; color: #fbbf24;">R$ 14,90</span>
+                        <span style="font-size: 0.6rem; color: #cbd5e1;">(único)</span>
+                    </div>
+                    <button id="btn-buy-pro" class="btn-primary full-width" style="background: #fbbf24; color: #0b0f19; padding: 0.5rem; font-size: 0.8rem; margin-top: 0.75rem; box-shadow: none; border-radius: 0.35rem;">
+                        Adquirir Versão PRO
+                    </button>
+                </div>
+
+                <!-- Lista de Ações do Menu -->
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <!-- Ver Histórico -->
+                    <button id="btn-menu-history" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 0.5rem; border: none; background: transparent; color: var(--text-main); font-weight: 600; font-size: 0.9rem; text-align: left; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.05); font-family: inherit;">
+                        <span>📅</span> Histórico de Partidas
+                    </button>
+
+                    <!-- Compartilhar App -->
+                    <button id="btn-menu-share" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 0.5rem; border: none; background: transparent; color: var(--text-main); font-weight: 600; font-size: 0.9rem; text-align: left; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.05); font-family: inherit;">
+                        <span>📲</span> Compartilhar Aplicativo
+                    </button>
+
+                    <!-- Avaliar App -->
+                    <button id="btn-menu-rate" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 0.5rem; border: none; background: transparent; color: var(--text-main); font-weight: 600; font-size: 0.9rem; text-align: left; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.05); font-family: inherit;">
+                        <span>⭐</span> Avaliar na Google Play
+                    </button>
+
+                    <!-- Suporte e Contato -->
+                    <a href="https://wa.me/5599999999999" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 0.5rem; border: none; background: transparent; color: var(--text-main); font-weight: 600; font-size: 0.9rem; text-decoration: none; border-bottom: 1px solid rgba(0,0,0,0.05); font-family: inherit;">
+                        <span>💬</span> Falar com o Suporte
+                    </a>
+
+                    <!-- Resetar App -->
+                    <button id="btn-menu-reset" style="display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.75rem 0.5rem; border: none; background: transparent; color: var(--color-danger); font-weight: 700; font-size: 0.9rem; text-align: left; cursor: pointer; font-family: inherit; margin-top: 1rem;">
+                        <span>🔄</span> Reiniciar Aplicativo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Footer do Drawer -->
+            <div style="padding: 1rem 1.25rem; border-top: 1px solid rgba(0,0,0,0.06); font-size: 0.7rem; color: var(--text-muted); text-align: center; background: var(--bg-card-header);">
+                SorteiaFut v2.2 &copy; 2026
+            </div>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- CABEÇALHO DO APLICATIVO -->
-        <header class="app-header">
-            <div class="logo-area">
+        <header class="app-header" style="display: flex; justify-content: space-between; align-items: center; position: relative;">
+            <!-- Botão Menu Hambúrguer -->
+            <button id="btn-open-menu" class="btn-icon-action" style="color: var(--text-main); display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+            <!-- Logo Centralizada -->
+            <div class="logo-area" style="display: flex; align-items: center; gap: 0.5rem; margin: 0 auto;">
                 <img src="logo.jpg" alt="SorteiaFut Logo" class="header-logo-img" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
-                <h1>Sorteia<span>Fut</span> <small style="font-size: 0.6rem; opacity: 0.5; vertical-align: super;">v2.2</small></h1>
+                <h1 style="margin: 0;">Sorteia<span>Fut</span> <small style="font-size: 0.6rem; opacity: 0.5; vertical-align: super;">v2.2</small></h1>
             </div>
-            <span class="game-status-badge" id="header-match-status" style="display: none;">Em Jogo</span>
+
+            <!-- Equilíbrio do Layout (Largura idêntica ao botão esquerdo) -->
+            <div style="width: 40px; display: flex; align-items: center; justify-content: flex-end;">
+                <span class="game-status-badge" id="header-match-status" style="display: none; position: absolute; right: 10px; font-size: 0.65rem; padding: 0.15rem 0.35rem; white-space: nowrap;">Em Jogo</span>
+            </div>
         </header>
 
         <!-- CONTEÚDO PRINCIPAL (ABAS DE NAVEGAÇÃO) -->
@@ -130,6 +216,43 @@
 
             <!-- ABA 2: SORTEADOR -->
             <section id="tab-sorteador" class="tab-panel">
+                <!-- Card de Configuração de Cores dos Uniformes (Sempre Visível) -->
+                <div class="section-card" style="margin-bottom: 1.25rem; padding: 1rem;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; width: 100%;">
+                        <h2 style="font-size: 1rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 0.35rem;">
+                            Uniforme dos Times 👕
+                        </h2>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem;">
+                                <span style="font-weight: 600; color: var(--text-muted);">Time A:</span>
+                                <select id="select-color-team-a" style="padding: 0.45rem 0.5rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.1); font-weight: 700; font-size: 0.8rem; outline: none; background: var(--bg-input); color: var(--text-main); font-family: inherit; cursor: pointer;">
+                                    <option value="verde">🟢 Verde</option>
+                                    <option value="azul">🔵 Azul</option>
+                                    <option value="vermelho">🔴 Vermelho</option>
+                                    <option value="amarelo">🟡 Amarelo</option>
+                                    <option value="laranja">🟠 Laranja</option>
+                                    <option value="roxo">🟣 Roxo</option>
+                                    <option value="branco">⚪ Branco</option>
+                                    <option value="preto">⚫ Preto</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem;">
+                                <span style="font-weight: 600; color: var(--text-muted);">Time B:</span>
+                                <select id="select-color-team-b" style="padding: 0.45rem 0.5rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.1); font-weight: 700; font-size: 0.8rem; outline: none; background: var(--bg-input); color: var(--text-main); font-family: inherit; cursor: pointer;">
+                                    <option value="verde">🟢 Verde</option>
+                                    <option value="azul" selected>🔵 Azul</option>
+                                    <option value="vermelho">🔴 Vermelho</option>
+                                    <option value="amarelo">🟡 Amarelo</option>
+                                    <option value="laranja">🟠 Laranja</option>
+                                    <option value="roxo">🟣 Roxo</option>
+                                    <option value="branco">⚪ Branco</option>
+                                    <option value="preto">⚫ Preto</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Contêiner da Animação do Sorteio (Estilo Champions League) -->
                 <div id="draw-animation-container" class="draw-anim-overlay" style="display: none;">
                     <div class="draw-anim-card">
@@ -243,6 +366,46 @@
             <section id="tab-partida" class="tab-panel">
                 <!-- Painel de Configuração antes de iniciar a Partida -->
                 <div class="section-card" id="match-setup-panel">
+                    <!-- Seleção dos Times da Partida -->
+                    <div class="form-group-vertical" style="border-bottom: 1.5px solid rgba(255,255,255,0.08); padding-bottom: 1rem; margin-bottom: 1rem;">
+                        <h2>Escalação dos Times 👕</h2>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; width: 100%;">
+                            <div>
+                                <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 0.35rem;">Time A (Mandante)</label>
+                                <select id="match-select-team-a" style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: var(--bg-input); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); outline: none; font-family: inherit; font-weight: 600;">
+                                    <!-- Dinamicamente preenchido -->
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 0.35rem;">Time B (Visitante)</label>
+                                <select id="match-select-team-b" style="width: 100%; padding: 0.75rem; border-radius: 0.5rem; background: var(--bg-input); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); outline: none; font-family: inherit; font-weight: 600;">
+                                    <!-- Dinamicamente preenchido -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Seleção Manual de Jogadores (Oculto por padrão) -->
+                        <div id="manual-players-container" class="hidden" style="margin-top: 1rem; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 1rem; width: 100%;">
+                            <h3 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">Escalar Jogadores Manuais</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <!-- Time A Manual Checklist -->
+                                <div id="manual-team-a-checklist-box" class="hidden">
+                                    <h4 style="font-size: 0.75rem; color: var(--color-accent); margin-bottom: 0.35rem; font-weight: 700;">Elenco do Time A</h4>
+                                    <div id="manual-team-a-list" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 0.4rem; font-size: 0.8rem;">
+                                        <!-- Checkboxes -->
+                                    </div>
+                                </div>
+                                <!-- Time B Manual Checklist -->
+                                <div id="manual-team-b-checklist-box" class="hidden">
+                                    <h4 style="font-size: 0.75rem; color: var(--color-accent); margin-bottom: 0.35rem; font-weight: 700;">Elenco do Time B</h4>
+                                    <div id="manual-team-b-list" style="display: flex; flex-direction: column; gap: 0.35rem; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.15); padding: 0.5rem; border-radius: 0.4rem; font-size: 0.8rem;">
+                                        <!-- Checkboxes -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <h2>Regras da Partida ⚙️</h2>
                     
                     <div class="form-group-vertical">
@@ -364,11 +527,58 @@
                     </button>
                 </div>
 
+                <!-- Painel de Decisão de Empate (Oculto por padrão) -->
+                <div class="section-card" id="draw-decision-panel" style="display: none; text-align: center; gap: 1.25rem;">
+                    <h2>Partida Empatada! 🤝</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted);">Como o jogo terminou empatado, decida quem continua em campo ou tire a sorte no Cara ou Coroa.</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button id="btn-draw-coin-flip" class="btn-primary full-width">
+                            Disputar no Cara ou Coroa 🪙
+                        </button>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <button id="btn-draw-keep-a" class="btn-outline">Manter <span id="draw-team-a-name">Time A</span></button>
+                            <button id="btn-draw-keep-b" class="btn-outline">Manter <span id="draw-team-b-name">Time B</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal de Cara ou Coroa (Oculto por padrão) -->
+                <div class="modal" id="coin-flip-modal" style="display: none; align-items: center; justify-content: center; z-index: 2000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6);">
+                    <div class="modal-content" style="max-width: 320px; text-align: center; padding: 1.75rem; background: var(--bg-card); border-radius: 1rem; position: relative; margin: 0 auto; color: var(--text-main);">
+                        <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 0.25rem;">Cara ou Coroa 🪙</h2>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1.25rem;" id="coin-teams-assignment">Time A (Cara) vs Time B (Coroa)</p>
+                        
+                        <!-- Moeda 3D -->
+                        <div class="coin-container">
+                            <div class="coin" id="virtual-coin">
+                                <!-- Front Face (Cara) -->
+                                <div class="coin-face coin-front">
+                                    <span style="font-size: 2.25rem;">⚽</span>
+                                    <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-top: 4px; color: var(--color-accent);">Cara</span>
+                                </div>
+                                <!-- Back Face (Coroa) -->
+                                <div class="coin-face coin-back">
+                                    <span style="font-size: 2.25rem;">👑</span>
+                                    <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-top: 4px; color: var(--color-warning);">Coroa</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="coin-flip-result" style="font-weight: 800; font-size: 1.15rem; min-height: 2.2rem; margin: 1.25rem 0; color: var(--color-accent); line-height: 1.3;"></div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button id="btn-spin-coin" class="btn-primary full-width">Lançar Moeda 🪙</button>
+                            <button id="btn-confirm-coin-result" class="btn-outline full-width hidden" style="background: var(--color-accent); color: #fff; border: none;">Confirmar e Continuar</button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Histórico e Controle de Partidas do Dia -->
                 <div class="section-card" id="match-history-panel" style="margin-top: 1.25rem;">
                     <div class="card-header">
                         <h2>Partidas de Hoje 📅</h2>
-                        <button id="btn-end-day" class="btn-text-action danger" style="font-weight: 700; font-size: 0.8rem;">Zerar Dia/Pelada 🛑</button>
+                        <button id="btn-end-day" class="btn-text-action danger" style="font-weight: 700; font-size: 0.85rem;">Encerrar peladas 🛑</button>
                     </div>
                     
                     <div class="history-list" id="match-history-list" style="display: flex; flex-direction: column; gap: 0.5rem;">

@@ -29,6 +29,13 @@ let state = {
         teams: [],
         bench: []
     },
+    vestColors: {
+        teamA: 'verde',
+        teamB: 'azul'
+    },
+    nextTeamLetter: 'C',
+    drawCount: 0,
+    isPro: false,
     match: {
         active: false,
         settings: {
@@ -77,10 +84,24 @@ function loadData() {
     if (savedHistory) {
         state.matchHistory = JSON.parse(savedHistory);
     }
+
+    state.nextTeamLetter = localStorage.getItem("sorteiafut_next_team_letter") || 'C';
+    state.drawCount = parseInt(localStorage.getItem("sorteiafut_draw_count") || '0', 10);
+    state.isPro = localStorage.getItem("sorteiafut_is_pro") === "true";
+
+    const savedVestColors = localStorage.getItem("sorteiafut_vest_colors");
+    if (savedVestColors) {
+        state.vestColors = JSON.parse(savedVestColors);
+    } else {
+        state.vestColors = { teamA: 'verde', teamB: 'azul' };
+    }
 }
 
 function saveHistory() {
     localStorage.setItem("sorteiafut_match_history", JSON.stringify(state.matchHistory));
+    localStorage.setItem("sorteiafut_next_team_letter", state.nextTeamLetter);
+    localStorage.setItem("sorteiafut_draw_count", state.drawCount.toString());
+    localStorage.setItem("sorteiafut_vest_colors", JSON.stringify(state.vestColors));
 }
 
 function savePlayers() {
@@ -198,6 +219,129 @@ function initApp() {
 
     // Eventos de encerramento do dia
     document.getElementById("btn-end-day").addEventListener("click", confirmEndDay);
+
+    // Eventos de Seleção de Time no Placar
+    document.getElementById("match-select-team-a").addEventListener("change", handleTeamASelectionChange);
+    document.getElementById("match-select-team-b").addEventListener("change", handleTeamBSelectionChange);
+
+    // Eventos do Menu Hambúrguer (Drawer)
+    document.getElementById("btn-open-menu").addEventListener("click", openAppDrawer);
+    document.getElementById("btn-close-drawer").addEventListener("click", closeAppDrawer);
+    document.getElementById("app-drawer").addEventListener("click", (e) => {
+        if (e.target.id === "app-drawer") closeAppDrawer();
+    });
+
+    // Seletor de Cores de Coletes
+    const selectColorA = document.getElementById("select-color-team-a");
+    const selectColorB = document.getElementById("select-color-team-b");
+    if (selectColorA && selectColorB) {
+        selectColorA.value = state.vestColors.teamA;
+        selectColorB.value = state.vestColors.teamB;
+
+        selectColorA.addEventListener("change", () => {
+            state.vestColors.teamA = selectColorA.value;
+            saveHistory();
+            renderLastDraw();
+        });
+        selectColorB.addEventListener("change", () => {
+            state.vestColors.teamB = selectColorB.value;
+            saveHistory();
+            renderLastDraw();
+        });
+    }
+
+    // Botão Adquirir PRO
+    const btnBuyPro = document.getElementById("btn-buy-pro");
+    if (btnBuyPro) {
+        if (state.isPro) {
+            document.getElementById("drawer-pro-banner").style.borderColor = "#10b981";
+            document.getElementById("drawer-pro-banner").style.boxShadow = "none";
+            document.getElementById("drawer-pro-banner").querySelector("h3").innerHTML = "SorteiaFut PRO Ativo! 🎉";
+            btnBuyPro.style.display = "none";
+        }
+        btnBuyPro.addEventListener("click", () => {
+            if (confirm("Parabéns pelo interesse no SorteiaFut PRO!\n\nDeseja realizar a compra simulada por R$ 14,90 para remover permanentemente todos os anúncios e apoiar o projeto?")) {
+                state.isPro = true;
+                localStorage.setItem("sorteiafut_is_pro", "true");
+                alert("Compra efetuada com sucesso! Todos os anúncios foram removidos.");
+                document.getElementById("drawer-pro-banner").style.borderColor = "#10b981";
+                document.getElementById("drawer-pro-banner").querySelector("h3").innerHTML = "SorteiaFut PRO Ativo! 🎉";
+                btnBuyPro.style.display = "none";
+                
+                if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+                    try {
+                        window.Capacitor.Plugins.AdMob.removeBanner();
+                    } catch (err) {
+                        console.log("Erro ao remover banner AdMob:", err);
+                    }
+                }
+            }
+        });
+    }
+
+    // Ver Histórico do Dia
+    document.getElementById("btn-menu-history").addEventListener("click", () => {
+        closeAppDrawer();
+        switchTab("tab-partida");
+        const panel = document.getElementById("match-history-panel");
+        if (panel) {
+            panel.scrollIntoView({ behavior: "smooth" });
+        }
+    });
+
+    // Compartilhar Aplicativo
+    document.getElementById("btn-menu-share").addEventListener("click", () => {
+        const shareData = {
+            title: "SorteiaFut",
+            text: "Monte times e artilharias de futebol direto do celular! Baixe o SorteiaFut v2.2.",
+            url: window.location.href
+        };
+        if (navigator.share) {
+            navigator.share(shareData).catch(err => console.log(err));
+        } else {
+            navigator.clipboard.writeText("SorteiaFut - O melhor sorteador de peladas e gestão de partidas! Acesse: " + window.location.href);
+            alert("Link do aplicativo copiado para a área de transferência! Compartilhe com seus amigos 📲");
+        }
+    });
+
+    // Avaliar Aplicativo na Google Play
+    document.getElementById("btn-menu-rate").addEventListener("click", () => {
+        alert("Obrigado pelo seu apoio! Esta opção redirecionará para a Google Play Store após o aplicativo estar publicado.");
+        window.open("https://play.google.com/store", "_blank");
+    });
+
+    // Reiniciar o Aplicativo completamente
+    document.getElementById("btn-menu-reset").addEventListener("click", () => {
+        if (confirm("ATENÇÃO: Deseja realmente reiniciar o aplicativo?\n\nIsso apagará permanentemente todos os jogadores, histórico de partidas do dia, configurações e estatísticas. Esta ação não pode ser desfeita!")) {
+            localStorage.clear();
+            alert("Aplicativo reiniciado com sucesso!");
+            window.location.reload();
+        }
+    });
+
+    // Eventos da Tela de Empate no Placar
+    document.getElementById("btn-draw-coin-flip").addEventListener("click", () => {
+        const modal = document.getElementById("coin-flip-modal");
+        const assignment = document.getElementById("coin-teams-assignment");
+        const teamAName = document.getElementById("team-a-title").textContent;
+        const teamBName = document.getElementById("team-b-title").textContent;
+        
+        assignment.textContent = `${teamAName} (Cara ⚽) vs ${teamBName} (Coroa 👑)`;
+        document.getElementById("coin-flip-result").innerHTML = "";
+        document.getElementById("virtual-coin").className = "coin";
+        document.getElementById("btn-spin-coin").classList.remove("hidden");
+        document.getElementById("btn-confirm-coin-result").classList.add("hidden");
+        
+        modal.style.display = "flex";
+    });
+    
+    document.getElementById("btn-draw-keep-a").addEventListener("click", () => handleManualDrawDecision(0));
+    document.getElementById("btn-draw-keep-b").addEventListener("click", () => handleManualDrawDecision(1));
+    document.getElementById("btn-spin-coin").addEventListener("click", spinVirtualCoin);
+    document.getElementById("btn-confirm-coin-result").addEventListener("click", () => {
+        document.getElementById("coin-flip-modal").style.display = "none";
+        handleManualDrawDecision(state.coinFlipWinnerIndex);
+    });
 }
 
 // NAVEGAÇÃO DE ABAS
@@ -216,6 +360,11 @@ function switchTab(tabId) {
     });
 
     document.getElementById(tabId).classList.add("active");
+
+    // Preenche as opções de escala de times ao acessar a aba Partida
+    if (tabId === "tab-partida") {
+        populateMatchTeamsDropdowns();
+    }
 }
 
 // CONFIGURAÇÃO DOS STEPPERS DE NÚMEROS (+ / -)
@@ -451,8 +600,14 @@ function drawTeams() {
         return;
     }
 
-    // Exibe anúncio intersticial de tela cheia se rodando no app nativo
-    showAdMobInterstitial();
+    // Incrementa contagem de sorteios
+    state.drawCount++;
+    saveHistory();
+
+    // Exibe anúncio intersticial de tela cheia se rodando no app nativo (a partir do 2º sorteio e se não for PRO)
+    if (state.drawCount >= 2 && !state.isPro) {
+        showAdMobInterstitial();
+    }
 
     // Ler configurações unificadas
     const numTeams = parseInt(document.getElementById("input-num-teams").value, 10) || 2;
@@ -566,13 +721,34 @@ function renderLastDraw() {
     }, 500);
 
     // Renderiza cada time como uma Prancheta Tática
+    const emojiMap = {
+        verde: "🟢",
+        azul: "🔵",
+        vermelho: "🔴",
+        amarelo: "🟡",
+        laranja: "🟠",
+        roxo: "🟣",
+        branco: "⚪",
+        preto: "⚫"
+    };
+
     teams.forEach((team, index) => {
         const card = document.createElement("div");
         card.className = "team-tactical-board";
         
+        let colorEmoji = "🟢";
+        if (index === 0) {
+            colorEmoji = emojiMap[state.vestColors.teamA] || "🟢";
+        } else if (index === 1) {
+            colorEmoji = emojiMap[state.vestColors.teamB] || "🔵";
+        } else {
+            const backupColors = ["🟡", "🔴", "🟠", "🟣", "⚫", "⚪"];
+            colorEmoji = backupColors[(index - 2) % backupColors.length];
+        }
+
         let teamHeaderHtml = `
             <h3>
-                <span>⚽ ${team.name}</span>
+                <span>${colorEmoji} ${team.name}</span>
                 <span class="team-size">${team.players.length} jogadores</span>
             </h3>
         `;
@@ -645,8 +821,29 @@ function copyTeamsToClipboard() {
 
     let text = "⚽ *SORTEIAFUT - DIVISÃO DOS TIMES* ⚽\n\n";
 
-    teams.forEach(team => {
-        text += `🟢 *${team.name.toUpperCase()}* `;
+    const emojiMap = {
+        verde: "🟢",
+        azul: "🔵",
+        vermelho: "🔴",
+        amarelo: "🟡",
+        laranja: "🟠",
+        roxo: "🟣",
+        branco: "⚪",
+        preto: "⚫"
+    };
+
+    teams.forEach((team, idx) => {
+        let colorEmoji = "🟢";
+        if (idx === 0) {
+            colorEmoji = emojiMap[state.vestColors.teamA] || "🟢";
+        } else if (idx === 1) {
+            colorEmoji = emojiMap[state.vestColors.teamB] || "🔵";
+        } else {
+            const backupColors = ["🟡", "🔴", "🟠", "🟣", "⚫", "⚪"];
+            colorEmoji = backupColors[(idx - 2) % backupColors.length];
+        }
+
+        text += `${colorEmoji} *${team.name.toUpperCase()}* `;
         if (team.isIncomplete) {
             text += `_(⚠️ Incompleto - Falta ${team.missingCount})_`;
         } else {
@@ -782,18 +979,7 @@ function resetAllGoals() {
 // ==========================================
 
 function sendTeamsToMatchSetup() {
-    const { teams } = state.drawResults;
-    if (!teams || teams.length < 2) return;
-
-    // Configura os títulos dos times na aba de Placar
-    document.getElementById("team-a-title").textContent = teams[0].name;
-    document.getElementById("team-b-title").textContent = teams[1].name;
-
-    // Armazena a lista de jogadores de cada time para associar gols
-    state.match.state.teamAPlayers = teams[0].players;
-    state.match.state.teamBPlayers = teams[1].players;
-
-    // Muda para a aba de placar
+    // Apenas muda para a aba de placar (a seleção e preenchimento agora são dinâmicos)
     switchTab("tab-partida");
 }
 
@@ -831,20 +1017,68 @@ function startMatch() {
         betBanner.style.display = "none";
     }
 
-    // Nomes dos times (garante fallbacks caso não tenham vindo do sorteador)
-    const { teams } = state.drawResults;
-    if (teams && teams.length >= 2) {
-        document.getElementById("team-a-title").textContent = teams[0].name;
-        document.getElementById("team-b-title").textContent = teams[1].name;
-        state.match.state.teamAPlayers = teams[0].players;
-        state.match.state.teamBPlayers = teams[1].players;
-    } else {
-        document.getElementById("team-a-title").textContent = "Time Verde";
-        document.getElementById("team-b-title").textContent = "Time Preto";
-        // Preenche com os jogadores confirmados se não houver sorteio estruturado
-        const present = state.players.filter(p => p.isPresent);
-        state.match.state.teamAPlayers = present;
-        state.match.state.teamBPlayers = present;
+    // Ler as seleções dos dropdowns
+    const selectA = document.getElementById("match-select-team-a");
+    const selectB = document.getElementById("match-select-team-b");
+    const valA = selectA.value;
+    const valB = selectB.value;
+
+    if (valA === valB) {
+        alert("Erro: O Time A e o Time B não podem ser o mesmo!");
+        return;
+    }
+
+    // Carrega Time A
+    if (valA.startsWith("team-")) {
+        const idx = parseInt(valA.replace("team-", ""), 10);
+        const selectedTeam = state.drawResults.teams[idx];
+        document.getElementById("team-a-title").textContent = selectedTeam.name;
+        state.match.state.teamAPlayers = selectedTeam.players;
+    } else if (valA === "manual") {
+        document.getElementById("team-a-title").textContent = "Time A (Manual)";
+        const checkedList = document.querySelectorAll("#manual-team-a-list input:checked");
+        if (checkedList.length === 0) {
+            alert("Selecione pelo menos 1 jogador para o Time A!");
+            return;
+        }
+        const playersA = [];
+        checkedList.forEach(input => {
+            const pId = parseInt(input.value, 10);
+            const pObj = state.players.find(p => p.id === pId);
+            if (pObj) playersA.push(pObj);
+        });
+        state.match.state.teamAPlayers = playersA;
+    }
+
+    // Carrega Time B
+    if (valB.startsWith("team-")) {
+        const idx = parseInt(valB.replace("team-", ""), 10);
+        const selectedTeam = state.drawResults.teams[idx];
+        document.getElementById("team-b-title").textContent = selectedTeam.name;
+        state.match.state.teamBPlayers = selectedTeam.players;
+    } else if (valB === "manual") {
+        document.getElementById("team-b-title").textContent = "Time B (Manual)";
+        const checkedList = document.querySelectorAll("#manual-team-b-list input:checked");
+        if (checkedList.length === 0) {
+            alert("Selecione pelo menos 1 jogador para o Time B!");
+            return;
+        }
+        const playersB = [];
+        checkedList.forEach(input => {
+            const pId = parseInt(input.value, 10);
+            const pObj = state.players.find(p => p.id === pId);
+            if (pObj) playersB.push(pObj);
+        });
+        state.match.state.teamBPlayers = playersB;
+    }
+
+    // Evita escalação duplicada
+    const duplicatePlayer = state.match.state.teamAPlayers.find(pa => 
+        state.match.state.teamBPlayers.some(pb => pb.id === pa.id)
+    );
+    if (duplicatePlayer) {
+        alert(`Erro: O jogador "${duplicatePlayer.name}" está escalado nos dois times ao mesmo tempo!`);
+        return;
     }
 
     // Exibir cronômetro formatado
@@ -873,9 +1107,11 @@ function endMatchProcess(saveData = false) {
         state.match.state.timerInterval = null;
     }
 
+    const scoreA = state.match.state.scoreA;
+    const scoreB = state.match.state.scoreB;
+
     // Salvar gols se requisitado
     if (saveData) {
-        // Os gols já são salvos em tempo real ao selecionar o jogador, mas vamos re-salvar por segurança
         savePlayers();
         renderArtilhariaList();
 
@@ -884,18 +1120,39 @@ function endMatchProcess(saveData = false) {
             id: state.matchHistory.length + 1,
             teamA: document.getElementById("team-a-title").textContent,
             teamB: document.getElementById("team-b-title").textContent,
-            scoreA: state.match.state.scoreA,
-            scoreB: state.match.state.scoreB,
+            scoreA: scoreA,
+            scoreB: scoreB,
             goalsLog: [...state.match.state.goalsLog]
         };
         state.matchHistory.push(matchData);
         saveHistory();
         renderHistory();
+
+        // Se for empate e estiver jogando com times estruturados, exige decisão
+        if (scoreA === scoreB && state.drawResults.teams && state.drawResults.teams.length >= 2) {
+            const drawPanel = document.getElementById("draw-decision-panel");
+            const activePanel = document.getElementById("match-active-panel");
+            
+            document.getElementById("draw-team-a-name").textContent = document.getElementById("team-a-title").textContent;
+            document.getElementById("draw-team-b-name").textContent = document.getElementById("team-b-title").textContent;
+            
+            activePanel.style.display = "none";
+            drawPanel.style.display = "flex";
+            
+            // Pausa o reset normal até escolherem o time vencedor
+            return;
+        } else if (state.drawResults.teams && state.drawResults.teams.length >= 2) {
+            // Se não for empate, faz a rotação automática do vencedor/perdedor
+            const winnerIdx = scoreA > scoreB ? 0 : 1;
+            const loserIdx = scoreA > scoreB ? 1 : 0;
+            handleRotation(winnerIdx, loserIdx);
+        }
     }
 
-    // Reset UI
+    // Reset UI normal
     document.getElementById("match-setup-panel").style.display = "flex";
     document.getElementById("match-active-panel").style.display = "none";
+    document.getElementById("draw-decision-panel").style.display = "none";
     document.getElementById("header-match-status").style.display = "none";
     
     const playBtn = document.getElementById("btn-timer-play-pause");
@@ -1642,6 +1899,10 @@ function playPickSound() {
 // ==========================================
 
 async function initAdMob() {
+    if (state.isPro) {
+        console.log("AdMob ignorado: Versão PRO ativa (sem anúncios).");
+        return;
+    }
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         const { AdMob } = window.Capacitor.Plugins;
         try {
@@ -1662,6 +1923,7 @@ async function initAdMob() {
 }
 
 async function showAdMobBanner() {
+    if (state.isPro) return;
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         const { AdMob } = window.Capacitor.Plugins;
         const options = {
@@ -1681,6 +1943,7 @@ async function showAdMobBanner() {
 }
 
 async function showAdMobInterstitial() {
+    if (state.isPro) return;
     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
         const { AdMob } = window.Capacitor.Plugins;
         const options = {
@@ -1790,4 +2053,266 @@ function confirmEndDay() {
 
         alert(`🏁 Pelada do Dia Encerrada com Sucesso!\n\nResumo de Hoje:\n⚽ Partidas Jogadas: ${totalGames}\n🔥 Total de Gols: ${totalGoals}\n👑 Artilheiro do Dia: ${topScorer.name} (${topScorer.goals} gols)`);
     }
+}
+
+// ==========================================
+// SELEÇÃO MANUAL E ESCALAÇÃO DE TIMES NO PLACAR
+// ==========================================
+
+function populateMatchTeamsDropdowns() {
+    const selectA = document.getElementById("match-select-team-a");
+    const selectB = document.getElementById("match-select-team-b");
+    if (!selectA || !selectB) return;
+
+    selectA.innerHTML = "";
+    selectB.innerHTML = "";
+
+    const { teams } = state.drawResults;
+
+    // Se houver times sorteados, popula os seletores com eles
+    if (teams && teams.length > 0) {
+        teams.forEach((team, idx) => {
+            const optA = document.createElement("option");
+            optA.value = `team-${idx}`;
+            optA.textContent = team.name;
+            selectA.appendChild(optA);
+
+            const optB = document.createElement("option");
+            optB.value = `team-${idx}`;
+            optB.textContent = team.name;
+            selectB.appendChild(optB);
+        });
+    }
+
+    // Adiciona a opção manual em ambos
+    const optManualA = document.createElement("option");
+    optManualA.value = "manual";
+    optManualA.textContent = "-- Seleção Manual --";
+    selectA.appendChild(optManualA);
+
+    const optManualB = document.createElement("option");
+    optManualB.value = "manual";
+    optManualB.textContent = "-- Seleção Manual --";
+    selectB.appendChild(optManualB);
+
+    // Seleciona Time A (índice 0) e Time B (índice 1 ou manual) como padrão
+    if (teams && teams.length >= 2) {
+        selectA.value = "team-0";
+        selectB.value = "team-1";
+    } else {
+        selectA.value = "manual";
+        selectB.value = "manual";
+    }
+
+    // Dispara a atualização visual dos checklists manuais
+    handleTeamASelectionChange();
+    handleTeamBSelectionChange();
+}
+
+function handleTeamASelectionChange() {
+    const selectA = document.getElementById("match-select-team-a");
+    const valA = selectA.value;
+    const checklistBoxA = document.getElementById("manual-team-a-checklist-box");
+    const container = document.getElementById("manual-players-container");
+
+    if (valA === "manual") {
+        checklistBoxA.classList.remove("hidden");
+        container.classList.remove("hidden");
+        populateManualPlayerChecklist("manual-team-a-list");
+    } else {
+        checklistBoxA.classList.add("hidden");
+        const valB = document.getElementById("match-select-team-b").value;
+        if (valB !== "manual") {
+            container.classList.add("hidden");
+        }
+    }
+}
+
+function handleTeamBSelectionChange() {
+    const selectB = document.getElementById("match-select-team-b");
+    const valB = selectB.value;
+    const checklistBoxB = document.getElementById("manual-team-b-checklist-box");
+    const container = document.getElementById("manual-players-container");
+
+    if (valB === "manual") {
+        checklistBoxB.classList.remove("hidden");
+        container.classList.remove("hidden");
+        populateManualPlayerChecklist("manual-team-b-list");
+    } else {
+        checklistBoxB.classList.add("hidden");
+        const valA = document.getElementById("match-select-team-a").value;
+        if (valA !== "manual") {
+            container.classList.add("hidden");
+        }
+    }
+}
+
+function populateManualPlayerChecklist(elementId) {
+    const listDiv = document.getElementById(elementId);
+    if (!listDiv) return;
+
+    listDiv.innerHTML = "";
+
+    const presentPlayers = state.players.filter(p => p.isPresent);
+
+    if (presentPlayers.length === 0) {
+        listDiv.innerHTML = `<p class="text-muted" style="font-size:0.75rem; color:#888;">Sem confirmados.</p>`;
+        return;
+    }
+
+    presentPlayers.forEach(p => {
+        const label = document.createElement("label");
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "0.35rem";
+        label.style.cursor = "pointer";
+        label.style.userSelect = "none";
+        label.style.marginBottom = "0.15rem";
+        label.style.color = "#ffffff";
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = p.id;
+        checkbox.style.cursor = "pointer";
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(`${p.name} ${p.isGoalkeeper ? "(G)" : ""}`));
+        listDiv.appendChild(label);
+    });
+}
+
+// ==========================================
+// CONTROLE DE GAVETA DO MENU HAMBÚRGUER (DRAWER)
+// ==========================================
+
+function openAppDrawer() {
+    const drawer = document.getElementById("app-drawer");
+    if (!drawer) return;
+    drawer.style.display = "block";
+    setTimeout(() => {
+        drawer.classList.add("active");
+    }, 10);
+}
+
+function closeAppDrawer() {
+    const drawer = document.getElementById("app-drawer");
+    if (!drawer) return;
+    drawer.classList.remove("active");
+    setTimeout(() => {
+        drawer.style.display = "none";
+    }, 300);
+}
+
+// ==========================================
+// ROTAÇÃO AUTOMÁTICA DE TIMES E FILA DE ESPERA
+// ==========================================
+
+function handleRotation(winnerIndex, loserIndex) {
+    const { teams, bench } = state.drawResults;
+    if (!teams || teams.length < 2) return;
+
+    const winnerTeam = teams[winnerIndex];
+    const loserTeam = teams[loserIndex];
+    const playersPerTeam = teams[0].players.length; // Usa tamanho atual do time sorteado
+
+    console.log(`Rodízio: ${winnerTeam.name} venceu. ${loserTeam.name} perdeu e vai para o fim da fila.`);
+
+    // 1. Envia os jogadores do perdedor para o final do bench (fila de espera)
+    state.drawResults.bench = [...state.drawResults.bench, ...loserTeam.players];
+
+    // 2. Cria o novo time pegando os jogadores da frente da fila
+    const newTeamPlayers = state.drawResults.bench.splice(0, playersPerTeam);
+
+    // 3. Monta o novo time (Time C, D, E...)
+    const incomingTeamName = `Time ${state.nextTeamLetter}`;
+    const newTeam = {
+        name: incomingTeamName,
+        players: newTeamPlayers
+    };
+
+    // Incrementa a letra para o próximo time (C -> D -> E ...)
+    let nextCharCode = state.nextTeamLetter.charCodeAt(0) + 1;
+    if (nextCharCode > 90) { // Limita até Z e depois volta pro A
+        nextCharCode = 65; 
+    }
+    state.nextTeamLetter = String.fromCharCode(nextCharCode);
+
+    // 4. Atualiza os times ativos:
+    // O vencedor fica no índice 0 (Time A) e o desafiante entra no índice 1 (Time B)
+    state.drawResults.teams = [winnerTeam, newTeam];
+
+    // 5. Salva no localStorage e re-renderiza
+    saveLastDraw();
+    saveHistory(); // Salva a letra do time
+    renderLastDraw();
+    populateMatchTeamsDropdowns();
+}
+
+// ==========================================
+// TRATAMENTO DE DECISÃO MANUAL EM CASO DE EMPATE
+// ==========================================
+
+function handleManualDrawDecision(winnerIndex) {
+    // Esconde o painel de decisão
+    document.getElementById("draw-decision-panel").style.display = "none";
+
+    const loserIndex = winnerIndex === 0 ? 1 : 0;
+    
+    // Roda a fila normalmente usando quem o coordenador escolheu como vencedor
+    handleRotation(winnerIndex, loserIndex);
+
+    // Conclui o fluxo da partida e volta para a tela de configurações
+    endMatchProcess(false); // false evita re-adicionar gols/histórico já salvos
+}
+
+// ==========================================
+// MOEDA DE CARA OU COROA INTERATIVA
+// ==========================================
+
+function spinVirtualCoin() {
+    const coin = document.getElementById("virtual-coin");
+    const spinBtn = document.getElementById("btn-spin-coin");
+    const resultDiv = document.getElementById("coin-flip-result");
+    const confirmBtn = document.getElementById("btn-confirm-coin-result");
+
+    if (!coin || !spinBtn) return;
+
+    // Desativa botão durante o giro
+    spinBtn.disabled = true;
+    spinBtn.textContent = "Girando... 🪙";
+    resultDiv.textContent = "";
+    confirmBtn.classList.add("hidden");
+
+    // Remove animações anteriores
+    coin.className = "coin";
+
+    // Escolhe o resultado (50% Cara, 50% Coroa)
+    const isHeads = Math.random() < 0.5;
+    state.coinFlipWinnerIndex = isHeads ? 0 : 1; // 0 = Cara (Time A), 1 = Coroa (Time B)
+
+    const teamAName = document.getElementById("team-a-title").textContent;
+    const teamBName = document.getElementById("team-b-title").textContent;
+
+    // Trigger da animação do CSS3
+    setTimeout(() => {
+        if (isHeads) {
+            coin.classList.add("spin-heads-anim");
+        } else {
+            coin.classList.add("spin-tails-anim");
+        }
+    }, 50);
+
+    // Mostra resultado após a animação de 1.5s
+    setTimeout(() => {
+        spinBtn.disabled = false;
+        spinBtn.textContent = "Lançar Moeda 🪙";
+        spinBtn.classList.add("hidden"); // Oculta para não re-jogar na mesma rodada
+        confirmBtn.classList.remove("hidden");
+
+        if (isHeads) {
+            resultDiv.innerHTML = `⚽ Resultado: <span style="color: var(--color-accent); font-weight:900;">CARA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamAName} continua em campo!</small>`;
+        } else {
+            resultDiv.innerHTML = `👑 Resultado: <span style="color: var(--color-warning); font-weight:900;">COROA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamBName} continua em campo!</small>`;
+        }
+    }, 1600);
 }
