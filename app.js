@@ -169,6 +169,13 @@ function initApp() {
     // Animação do Sorteio
     document.getElementById("btn-skip-draw-anim").addEventListener("click", skipDrawAnimation);
 
+    // Registra o Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log('PWA Service Worker registrado com sucesso!'))
+            .catch(err => console.log('Erro ao registrar Service Worker:', err));
+    }
+
     // Render Inicial
     console.log("SorteiaFut JS v2.2 - Loaded successfully!");
     renderPlayersList();
