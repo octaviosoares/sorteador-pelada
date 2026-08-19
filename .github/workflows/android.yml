@@ -40,12 +40,17 @@ jobs:
       - name: Prepare Web Assets for Capacitor
         run: |
           mkdir -p www
-          cp index.html style.css app.js icon.jpg logo.jpg icon192.png icon512.png manifest.json sw.js www/
+          cp index.html style.css app.js *.jpg *.png manifest.json sw.js www/
 
       - name: Initialize Capacitor Android
         run: |
           npx cap add android
           npx cap sync
+
+      - name: Generate App Icon and Splash Assets
+        run: |
+          npm install @capacitor/assets
+          npx @capacitor/assets generate --android --iconBackgroundColor '#102715'
 
       - name: Inject AdMob App ID in AndroidManifest
         run: |
