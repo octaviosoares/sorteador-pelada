@@ -2005,6 +2005,21 @@ input[type="text"]:focus, input[type="number"]:focus {
 /* ==========================================
    ESTILOS DO CARA OU COROA (MOEDA 3D)
    ========================================== */
+.coin-container {
+    width: 140px;
+    height: 140px;
+    perspective: 1000px;
+    margin: 1.5rem auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.coin {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+}
 .coin-face {
     position: absolute;
     width: 100%;
@@ -2092,5 +2107,23 @@ input[type="text"]:focus, input[type="number"]:focus {
     transition: background-color var(--transition-fast) !important;
 }
 #btn-timer-reset:hover {
+    background-color: var(--color-accent-glow) !important;
+}
+
+/* Força contorno verde nos botões de Manter Time A e B (Decisão de empate) */
+#btn-draw-keep-a,
+#btn-draw-keep-b {
+    background-color: transparent !important;
+    border: 2px solid var(--color-accent) !important;
+    color: var(--color-accent) !important;
+    font-weight: 700 !important;
+    padding: 0.65rem 0.85rem !important;
+    border-radius: 0.5rem !important;
+    cursor: pointer !important;
+    font-family: inherit !important;
+    transition: background-color var(--transition-fast) !important;
+}
+#btn-draw-keep-a:hover,
+#btn-draw-keep-b:hover {
     background-color: var(--color-accent-glow) !important;
 }

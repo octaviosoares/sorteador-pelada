@@ -332,6 +332,29 @@ function initApp() {
         }
     });
 
+    // Abrir Modal de Guia de Funções
+    const btnMenuGuide = document.getElementById("btn-menu-guide");
+    if (btnMenuGuide) {
+        btnMenuGuide.addEventListener("click", () => {
+            closeAppDrawer();
+            document.getElementById("guide-modal").style.display = "flex";
+        });
+    }
+
+    // Fechar Modal de Guia de Funções
+    const closeGuideBtn = document.getElementById("btn-close-guide-modal");
+    const okGuideBtn = document.getElementById("btn-ok-guide");
+    if (closeGuideBtn) {
+        closeGuideBtn.addEventListener("click", () => {
+            document.getElementById("guide-modal").style.display = "none";
+        });
+    }
+    if (okGuideBtn) {
+        okGuideBtn.addEventListener("click", () => {
+            document.getElementById("guide-modal").style.display = "none";
+        });
+    }
+
     // Compartilhar Aplicativo
     document.getElementById("btn-menu-share").addEventListener("click", () => {
         const shareData = {
@@ -384,6 +407,9 @@ function initApp() {
     document.getElementById("btn-confirm-coin-result").addEventListener("click", () => {
         document.getElementById("coin-flip-modal").style.display = "none";
         handleManualDrawDecision(state.coinFlipWinnerIndex);
+    });
+    document.getElementById("btn-close-coin-flip").addEventListener("click", () => {
+        document.getElementById("coin-flip-modal").style.display = "none";
     });
 }
 
@@ -2507,9 +2533,9 @@ function spinVirtualCoin() {
         confirmBtn.classList.remove("hidden");
 
         if (isHeads) {
-            resultDiv.innerHTML = `⭐ Resultado: <span style="color: #fbbf24; font-weight:900;">CARA (Estrelas)</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamAName} continua em campo!</small>`;
+            resultDiv.innerHTML = `⭐ Resultado: <span style="color: #fbbf24; font-weight:900;">CARA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamAName} continua em campo!</small>`;
         } else {
-            resultDiv.innerHTML = `👑 Resultado: <span style="color: #fbbf24; font-weight:900;">COROA (Coroa)</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamBName} continua em campo!</small>`;
+            resultDiv.innerHTML = `👑 Resultado: <span style="color: #fbbf24; font-weight:900;">COROA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamBName} continua em campo!</small>`;
         }
     }, 1600);
 }
