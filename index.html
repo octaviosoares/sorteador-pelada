@@ -434,12 +434,12 @@
 
                     <!-- Opção de Revanche / Manter mesmos times -->
                     <div style="margin-bottom: 1.25rem; width: 100%;">
-                        <label class="toggle-label" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: rgba(0,0,0,0.02); border: 1.5px solid rgba(0,0,0,0.06); padding: 0.75rem 0.85rem; border-radius: 0.6rem;">
+                        <label class="toggle-label" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer; background: rgba(0,0,0,0.01); border: 2px solid var(--color-accent) !important; padding: 0.75rem 0.85rem; border-radius: 0.6rem;">
                             <span style="display: flex; flex-direction: column; gap: 0.15rem; text-align: left;">
-                                <strong style="font-size: 0.85rem; color: var(--text-main); font-weight: 700;">Manter os mesmos times (Revanche) 🔄</strong>
+                                <strong style="font-size: 0.85rem; color: var(--color-accent); font-weight: 800;">Manter os mesmos times (Revanche)</strong>
                                 <small style="font-size: 0.7rem; color: var(--text-muted);">Não roda a fila de espera nem altera os times ativos após este jogo.</small>
                             </span>
-                            <input type="checkbox" id="match-keep-same-teams" style="cursor: pointer; width: 1.25rem; height: 1.25rem;">
+                            <input type="checkbox" id="match-keep-same-teams" style="cursor: pointer; width: 1.25rem; height: 1.25rem; accent-color: var(--color-accent);">
                         </label>
                     </div>
 
@@ -693,8 +693,8 @@
             <div class="modal-body" id="goal-modal-players-list">
                 <!-- Gerado dinamicamente com botões dos jogadores do time -->
             </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" id="btn-goal-anonymous">Gol Contra ou Anônimo</button>
+            <div class="modal-footer" style="padding: 1rem 1.25rem; border-top: 1px solid rgba(0,0,0,0.06); background: var(--bg-card-header); border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
+                <button id="btn-goal-anonymous" style="background: #1e293b !important; color: #ffffff !important; font-weight: 700; border-radius: 0.5rem; border: none; padding: 0.75rem 1.5rem; font-size: 0.9rem; justify-content: center; width: 100%; display: flex; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Gol Contra ou Anônimo</button>
             </div>
         </div>
     </div>
