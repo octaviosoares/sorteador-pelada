@@ -2546,5 +2546,41 @@ function spinVirtualCoin() {
         } else {
             resultDiv.innerHTML = `👑 Resultado: <span style="color: #fbbf24; font-weight:900;">COROA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamBName} continua em campo!</small>`;
         }
+
+        playCoinSound();
     }, 1600);
+}
+
+// SINTETIZADOR DE ÁUDIO NATIVO (EFEITO CHIME DE MOEDA)
+function playCoinSound() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+
+        // Som clássico de moeda estilo 8-bit (dois tons ascendentes de onda senoidal)
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type = "sine";
+
+        // Tom inicial (Dó5)
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+
+        // Tom final ascendente (Mi5) - Chime clássico de jogo
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
+
+        // Fade out suave para evitar estalos de áudio
+        gain.gain.setValueAtTime(0.25, ctx.currentTime + 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.38);
+    } catch (e) {
+        console.warn("Erro ao sintetizar áudio da moeda:", e);
+    }
 }
