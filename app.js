@@ -397,6 +397,7 @@ function initApp() {
         document.getElementById("virtual-coin").className = "coin";
         document.getElementById("btn-spin-coin").classList.remove("hidden");
         document.getElementById("btn-confirm-coin-result").classList.add("hidden");
+        document.getElementById("btn-retry-coin").classList.add("hidden");
         
         modal.style.display = "flex";
     });
@@ -407,6 +408,13 @@ function initApp() {
     document.getElementById("btn-confirm-coin-result").addEventListener("click", () => {
         document.getElementById("coin-flip-modal").style.display = "none";
         handleManualDrawDecision(state.coinFlipWinnerIndex);
+    });
+    document.getElementById("btn-retry-coin").addEventListener("click", () => {
+        document.getElementById("btn-confirm-coin-result").classList.add("hidden");
+        document.getElementById("btn-retry-coin").classList.add("hidden");
+        document.getElementById("coin-flip-result").innerHTML = "";
+        document.getElementById("virtual-coin").className = "coin";
+        document.getElementById("btn-spin-coin").classList.remove("hidden");
     });
     document.getElementById("btn-close-coin-flip").addEventListener("click", () => {
         document.getElementById("coin-flip-modal").style.display = "none";
@@ -2531,6 +2539,7 @@ function spinVirtualCoin() {
         spinBtn.textContent = "Lançar Moeda 🪙";
         spinBtn.classList.add("hidden"); // Oculta para não re-jogar na mesma rodada
         confirmBtn.classList.remove("hidden");
+        document.getElementById("btn-retry-coin").classList.remove("hidden");
 
         if (isHeads) {
             resultDiv.innerHTML = `⭐ Resultado: <span style="color: #fbbf24; font-weight:900;">CARA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamAName} continua em campo!</small>`;
