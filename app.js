@@ -125,10 +125,53 @@ function initApp() {
 
     // 2. Eventos da Aba Jogadores
     const formAdd = document.getElementById("form-add-jogador");
-    formAdd.addEventListener("submit", handleAddJogador);
+    if (formAdd) {
+        formAdd.addEventListener("submit", handleAddJogador);
+    }
+
+    // Alternar modos de cadastro (Individual vs Lista)
+    const btnSingle = document.getElementById("btn-toggle-add-single");
+    const btnBulk = document.getElementById("btn-toggle-add-bulk");
+    const formSingle = document.getElementById("form-add-jogador");
+    const formBulk = document.getElementById("form-import-jogadores");
+
+    if (btnSingle && btnBulk && formSingle && formBulk) {
+        btnSingle.addEventListener("click", () => {
+            btnSingle.classList.add("active");
+            btnSingle.style.borderBottomColor = "#ffffff";
+            btnSingle.style.opacity = "1";
+            
+            btnBulk.classList.remove("active");
+            btnBulk.style.borderBottomColor = "transparent";
+            btnBulk.style.opacity = "0.6";
+
+            formSingle.style.display = "flex";
+            formBulk.style.display = "none";
+        });
+
+        btnBulk.addEventListener("click", () => {
+            btnBulk.classList.add("active");
+            btnBulk.style.borderBottomColor = "#ffffff";
+            btnBulk.style.opacity = "1";
+
+            btnSingle.classList.remove("active");
+            btnSingle.style.borderBottomColor = "transparent";
+            btnSingle.style.opacity = "0.6";
+
+            formSingle.style.display = "none";
+            formBulk.style.display = "flex";
+        });
+    }
+
+    const formImport = document.getElementById("form-import-jogadores");
+    if (formImport) {
+        formImport.addEventListener("submit", handleBulkImport);
+    }
 
     const searchInput = document.getElementById("search-jogadores");
-    searchInput.addEventListener("input", filterPlayersList);
+    if (searchInput) {
+        searchInput.addEventListener("input", filterPlayersList);
+    }
 
     document.getElementById("btn-select-all").addEventListener("click", confirmAllPlayers);
     document.getElementById("btn-clear-all").addEventListener("click", clearAllPlayers);
@@ -326,7 +369,7 @@ function initApp() {
         const teamAName = document.getElementById("team-a-title").textContent;
         const teamBName = document.getElementById("team-b-title").textContent;
         
-        assignment.textContent = `${teamAName} (Cara ⚽) vs ${teamBName} (Coroa 👑)`;
+        assignment.textContent = `${teamAName} (Cara) vs ${teamBName} (Coroa)`;
         document.getElementById("coin-flip-result").innerHTML = "";
         document.getElementById("virtual-coin").className = "coin";
         document.getElementById("btn-spin-coin").classList.remove("hidden");
@@ -444,10 +487,21 @@ function renderPlayersList() {
                 </button>
                 <div class="player-name-wrapper">
                     <span class="player-name">${player.name}</span>
-                    ${player.isGoalkeeper ? '<span class="badge gk">Goleiro</span>' : ''}
+                    <div style="display: flex; gap: 0.25rem; align-items: center; margin-top: 0.15rem;">
+                        ${player.isGoalkeeper ? '<span class="badge gk">Goleiro</span>' : ''}
+                        ${player.isSeeded ? '<span class="badge" style="background: #fbbf24; color: #0b0f19;">Estrela ⭐</span>' : ''}
+                    </div>
                 </div>
             </div>
             <div class="player-actions">
+                <!-- Botão de Cabeça de Chave (Estrela) -->
+                <button class="btn-icon-action" onclick="toggleSeeded(${player.id})" title="Alternar Cabeça de Chave" style="color: ${player.isSeeded ? '#fbbf24' : 'var(--text-muted)'}; opacity: ${player.isSeeded ? '1' : '0.4'}; font-size: 1.15rem; cursor: pointer;">
+                    ★
+                </button>
+                <!-- Botão de Goleiro (Luvas) -->
+                <button class="btn-icon-action" onclick="toggleGoalkeeper(${player.id})" title="Alternar Goleiro" style="opacity: ${player.isGoalkeeper ? '1' : '0.35'}; filter: grayscale(${player.isGoalkeeper ? '0' : '1'}); font-size: 1.1rem; cursor: pointer;">
+                    🧤
+                </button>
                 <button class="btn-icon-action" onclick="editPlayer(${player.id})" title="Editar Nome">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -502,12 +556,109 @@ function handleAddJogador(e) {
     nomeInput.focus();
 }
 
+function handleBulkImport(e) {
+    e.preventDefault();
+    const textarea = document.getElementById("import-names-area");
+    if (!textarea) return;
+
+    const rawText = textarea.value;
+    if (!rawText.trim()) {
+        alert("Por favor, cole alguma lista de nomes antes de importar!");
+        return;
+    }
+
+    const lines = rawText.split(/\r?\n/);
+    let importCount = 0;
+    let goalkeeperCount = 0;
+
+    lines.forEach((line, index) => {
+        let name = line.trim();
+        if (!name) return;
+
+        // 1. Detecta se é goleiro (se contiver palavras como "goleiro", "goleira", "(g)", "(gk)", "gol")
+        const isGk = /\b(goleiro|goleira|gk|gol)\b|\((g|gk)\)/i.test(name);
+
+        // 2. Limpa prefixos de numeração e listas comuns
+        // Remove números no início, seguidos de ponto, traço, parêntese ou espaço (Ex: "1.", "2 -", "3)", "4. ")
+        name = name.replace(/^\d+[\.\-\)\s]*/, '');
+        // Remove marcadores de tópicos como "*", "-", "•", "o" no início da linha
+        name = name.replace(/^[\*\-\u2022\u25e6]\s*/, '');
+
+        // Remove menções de goleiro do texto do nome para limpar
+        name = name.replace(/\b(goleiro|goleira|gk|gol)\b|\((goleiro|goleira|gk|gol|g)\)/i, '');
+        // Remove caracteres especiais de limpeza nas pontas
+        name = name.replace(/[\(\)\-\[\]]/g, '');
+        name = name.trim();
+
+        if (!name || name.length < 2) return;
+
+        // Limita a 20 caracteres (mesmo limite do input de jogador individual)
+        if (name.length > 20) {
+            name = name.substring(0, 20).trim();
+        }
+
+        // Verifica duplicados (case insensitive)
+        const nameExists = state.players.some(p => p.name.toLowerCase() === name.toLowerCase());
+        if (nameExists) return;
+
+        // Cria o jogador
+        const newPlayer = {
+            id: Date.now() + index + Math.floor(Math.random() * 100),
+            name: name,
+            isGoalkeeper: isGk,
+            isPresent: true,
+            goals: 0
+        };
+
+        state.players.push(newPlayer);
+        importCount++;
+        if (isGk) goalkeeperCount++;
+    });
+
+    if (importCount > 0) {
+        savePlayers();
+        renderPlayersList();
+        renderArtilhariaList();
+        textarea.value = "";
+        
+        let msg = `${importCount} jogadores importados com sucesso!`;
+        if (goalkeeperCount > 0) {
+            msg += `\n(${goalkeeperCount} goleiro(s) auto-detectado(s))`;
+        }
+        alert(msg);
+        
+        // Retorna ao modo individual após importar
+        document.getElementById("btn-toggle-add-single").click();
+    } else {
+        alert("Nenhum jogador novo foi detectado ou importado da lista. Verifique a lista colada.");
+    }
+}
+
 function togglePresence(id) {
     const player = state.players.find(p => p.id === id);
     if (player) {
         player.isPresent = !player.isPresent;
         savePlayers();
         renderPlayersList();
+    }
+}
+
+function toggleSeeded(id) {
+    const player = state.players.find(p => p.id === id);
+    if (player) {
+        player.isSeeded = !player.isSeeded;
+        savePlayers();
+        renderPlayersList();
+    }
+}
+
+function toggleGoalkeeper(id) {
+    const player = state.players.find(p => p.id === id);
+    if (player) {
+        player.isGoalkeeper = !player.isGoalkeeper;
+        savePlayers();
+        renderPlayersList();
+        updateSorteioWarnings();
     }
 }
 
@@ -647,20 +798,49 @@ function drawTeams() {
 
     // Shufflamos os selecionados para o sorteio ser aleatório entre quem chegou primeiro
     shuffleArray(startingGks);
-    shuffleArray(startingLines);
+
+    // Separar os titulares de linha entre Cabeças de Chave (seeded) e normais
+    const startingSeeded = startingLines.filter(p => p.isSeeded);
+    const startingNormal = startingLines.filter(p => !p.isSeeded);
+
+    shuffleArray(startingSeeded);
+    shuffleArray(startingNormal);
 
     // Distribuir os goleiros nos times
     startingGks.forEach((gk, index) => {
         generatedTeams[index].players.push(gk);
     });
 
-    // Distribuir os jogadores de linha nos times
-    let lineIdx = 0;
+    // Distribuir os Cabeças de Chave nos times de forma equilibrada (round-robin)
+    for (let i = 0; i < startingSeeded.length; i++) {
+        const teamIdx = i % numTeams;
+        const team = generatedTeams[teamIdx];
+        if (team.players.length < playersPerTeam) {
+            team.players.push(startingSeeded[i]);
+        } else {
+            // Se o time correspondente já estiver cheio, procura outro com vaga
+            let assigned = false;
+            for (let offset = 1; offset < numTeams; offset++) {
+                const nextTeam = generatedTeams[(teamIdx + offset) % numTeams];
+                if (nextTeam.players.length < playersPerTeam) {
+                    nextTeam.players.push(startingSeeded[i]);
+                    assigned = true;
+                    break;
+                }
+            }
+            if (!assigned) {
+                team.players.push(startingSeeded[i]);
+            }
+        }
+    }
+
+    // Distribuir os jogadores de linha normais nos times
+    let normalIdx = 0;
     for (let i = 0; i < numTeams; i++) {
         const team = generatedTeams[i];
-        while (team.players.length < playersPerTeam && lineIdx < startingLines.length) {
-            team.players.push(startingLines[lineIdx]);
-            lineIdx++;
+        while (team.players.length < playersPerTeam && normalIdx < startingNormal.length) {
+            team.players.push(startingNormal[normalIdx]);
+            normalIdx++;
         }
         // Marcar como incompleto se não tiver jogadores suficientes
         if (team.players.length < playersPerTeam) {
@@ -1128,24 +1308,30 @@ function endMatchProcess(saveData = false) {
         saveHistory();
         renderHistory();
 
-        // Se for empate e estiver jogando com times estruturados, exige decisão
-        if (scoreA === scoreB && state.drawResults.teams && state.drawResults.teams.length >= 2) {
-            const drawPanel = document.getElementById("draw-decision-panel");
-            const activePanel = document.getElementById("match-active-panel");
-            
-            document.getElementById("draw-team-a-name").textContent = document.getElementById("team-a-title").textContent;
-            document.getElementById("draw-team-b-name").textContent = document.getElementById("team-b-title").textContent;
-            
-            activePanel.style.display = "none";
-            drawPanel.style.display = "flex";
-            
-            // Pausa o reset normal até escolherem o time vencedor
-            return;
-        } else if (state.drawResults.teams && state.drawResults.teams.length >= 2) {
-            // Se não for empate, faz a rotação automática do vencedor/perdedor
-            const winnerIdx = scoreA > scoreB ? 0 : 1;
-            const loserIdx = scoreA > scoreB ? 1 : 0;
-            handleRotation(winnerIdx, loserIdx);
+        const keepSame = document.getElementById("match-keep-same-teams").checked;
+
+        if (keepSame) {
+            console.log("Mantendo os mesmos times para a próxima partida (Revanche).");
+        } else {
+            // Se for empate e estiver jogando com times estruturados, exige decisão
+            if (scoreA === scoreB && state.drawResults.teams && state.drawResults.teams.length >= 2) {
+                const drawPanel = document.getElementById("draw-decision-panel");
+                const activePanel = document.getElementById("match-active-panel");
+                
+                document.getElementById("draw-team-a-name").textContent = document.getElementById("team-a-title").textContent;
+                document.getElementById("draw-team-b-name").textContent = document.getElementById("team-b-title").textContent;
+                
+                activePanel.style.display = "none";
+                drawPanel.style.display = "flex";
+                
+                // Pausa o reset normal até escolherem o time vencedor
+                return;
+            } else if (state.drawResults.teams && state.drawResults.teams.length >= 2) {
+                // Se não for empate, faz a rotação automática do vencedor/perdedor
+                const winnerIdx = scoreA > scoreB ? 0 : 1;
+                const loserIdx = scoreA > scoreB ? 1 : 0;
+                handleRotation(winnerIdx, loserIdx);
+            }
         }
     }
 
@@ -2104,6 +2290,17 @@ function populateMatchTeamsDropdowns() {
         selectB.value = "manual";
     }
 
+    // Autocompleta o checkbox de Revanche se a fila de espera estiver vazia
+    const keepSameCheckbox = document.getElementById("match-keep-same-teams");
+    if (keepSameCheckbox) {
+        const { bench } = state.drawResults;
+        if (!bench || bench.length === 0) {
+            keepSameCheckbox.checked = true;
+        } else {
+            keepSameCheckbox.checked = false;
+        }
+    }
+
     // Dispara a atualização visual dos checklists manuais
     handleTeamASelectionChange();
     handleTeamBSelectionChange();
@@ -2310,9 +2507,9 @@ function spinVirtualCoin() {
         confirmBtn.classList.remove("hidden");
 
         if (isHeads) {
-            resultDiv.innerHTML = `⚽ Resultado: <span style="color: var(--color-accent); font-weight:900;">CARA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamAName} continua em campo!</small>`;
+            resultDiv.innerHTML = `⭐ Resultado: <span style="color: #fbbf24; font-weight:900;">CARA (Estrelas)</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamAName} continua em campo!</small>`;
         } else {
-            resultDiv.innerHTML = `👑 Resultado: <span style="color: var(--color-warning); font-weight:900;">COROA</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamBName} continua em campo!</small>`;
+            resultDiv.innerHTML = `👑 Resultado: <span style="color: #fbbf24; font-weight:900;">COROA (Coroa)</span><br><small style="font-weight: 600; color: var(--text-muted);">${teamBName} continua em campo!</small>`;
         }
     }, 1600);
 }
