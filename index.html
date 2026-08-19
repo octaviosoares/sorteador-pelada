@@ -461,10 +461,13 @@
 
                         <!-- Limite de Gols -->
                         <div class="checkbox-setting-row">
-                            <label class="toggle-label">
+                            <label class="toggle-label" style="align-items: flex-start; gap: 0.65rem;">
                                 <input type="checkbox" id="match-use-goals" checked>
-                                <span class="toggle-slider"></span>
-                                <span class="toggle-text">Limite de Gols (Quem fizer ganha)</span>
+                                <span class="toggle-slider" style="margin-top: 0.15rem;"></span>
+                                <span class="toggle-text" style="display: flex; flex-direction: column; line-height: 1.25; text-align: left;">
+                                    <span>Limite de Gols</span>
+                                    <small style="font-weight: 500; color: var(--text-muted); font-size: 0.72rem; margin-top: 0.1rem;">(Quem fizer ganha)</small>
+                                </span>
                             </label>
                             <div class="inline-input-stepper" id="stepper-goals-container">
                                 <input type="number" id="match-goals-limit" value="2" min="1" max="10"> 
@@ -631,7 +634,7 @@
                 <div class="section-card" id="match-history-panel" style="margin-top: 1.25rem;">
                     <div class="card-header">
                         <h2>Partidas de Hoje 📅</h2>
-                        <button id="btn-end-day" class="btn-text-action danger" style="font-weight: 700; font-size: 0.85rem;">Encerrar peladas 🛑</button>
+                        <button id="btn-end-day" class="btn-text-action danger" style="font-weight: 700; font-size: 0.85rem;">Encerrar peladas</button>
                     </div>
                     
                     <div class="history-list" id="match-history-list" style="display: flex; flex-direction: column; gap: 0.5rem;">

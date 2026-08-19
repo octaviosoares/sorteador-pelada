@@ -363,6 +363,7 @@ input[type="text"]:focus, input[type="number"]:focus {
     border-radius: 9999px;
     position: relative;
     transition: background var(--transition-fast);
+    flex-shrink: 0;
 }
 
 .toggle-slider::before {
