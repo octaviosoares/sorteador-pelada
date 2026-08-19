@@ -1014,7 +1014,7 @@ function renderLastDraw() {
     const sendBtn = document.getElementById("btn-send-to-match");
     if (teams.length >= 2) {
         document.getElementById("send-to-match-container").style.display = "block";
-        sendBtn.innerHTML = `Enviar <strong>${teams[0].name}</strong> & <strong>${teams[1].name}</strong> para o Placar ⏱️`;
+        sendBtn.innerHTML = `Enviar <strong>${teams[0].name}</strong> & <strong>${teams[1].name}</strong> para o Início ⏱️`;
     } else {
         document.getElementById("send-to-match-container").style.display = "none";
     }
